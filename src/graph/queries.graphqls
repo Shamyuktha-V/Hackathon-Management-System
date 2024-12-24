@@ -1,0 +1,4 @@
+type Query {
+    hello: String!
+    getPost(id: ID!): String!
+}

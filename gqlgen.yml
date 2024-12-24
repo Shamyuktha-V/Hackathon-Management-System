@@ -1,0 +1,16 @@
+schema:
+  - ./src/graph/*.graphqls
+
+resolver:
+  layout: follow-schema           
+  dir: ./src/graph                 
+  package: graph                
+
+exec:
+  filename: ./src/graph/generated.go 
+  package: graph                 
+
+model:
+  filename: ./src/graph/model/models_gen.go  
+  package: model                       
+
