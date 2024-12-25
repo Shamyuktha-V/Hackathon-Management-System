@@ -1,0 +1,51 @@
+type Submission {
+    SubmissionID: ID!
+    TeamID: ID!
+    HackathonID: ID!
+    GithubLink: String!
+    DocumentURL: String!
+    PresentationURL: String!
+    SubmittedAt: String!
+    IsSubmitted: Boolean!
+    KeyFeatures: String
+    Feedback: String
+    Adherence: Float
+    InnovationScore: Float
+    FeasibilityScore: Float
+    ImpactScore: Float
+    Summary: String
+}
+
+input CreateSubmissionInput {
+    TeamID: ID!
+    HackathonID: ID!
+    GithubLink: String!
+    DocumentURL: String!
+    PresentationURL: String!
+    SubmittedAt: String!
+    IsSubmitted: Boolean!
+    KeyFeatures: String
+    Feedback: String
+    Adherence: Float
+    InnovationScore: Float
+    FeasibilityScore: Float
+    ImpactScore: Float
+    Summary: String
+}
+
+input UpdateSubmissionInput {
+    TeamID: ID
+    HackathonID: ID
+    GithubLink: String
+    DocumentURL: String
+    PresentationURL: String
+    SubmittedAt: String
+    IsSubmitted: Boolean
+    KeyFeatures: String
+    Feedback: String
+    Adherence: Float
+    InnovationScore: Float
+    FeasibilityScore: Float
+    ImpactScore: Float
+    Summary: String
+}
