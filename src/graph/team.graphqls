@@ -1,0 +1,18 @@
+type Team {
+  TeamID: Int!          # Unique identifier for the team
+  TeamName: String!     # Name of the team
+  LeaderID: Int!        # References the User's ID who is the leader of the team
+  TeamSize: Int!        # Number of members in the team
+}
+
+input CreateTeamInput {
+  TeamName: String!     # Name of the team to be created
+  LeaderID: Int!        # ID of the User who will be the leader of the team
+  TeamSize: Int!        # Initial size of the team
+}
+
+input UpdateTeamInput {
+  TeamName: String      # Optional update for the team's name
+  LeaderID: Int         # Optional update for the leader of the team
+  TeamSize: Int         # Optional update for the team's size
+}
