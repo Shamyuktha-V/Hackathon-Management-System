@@ -1,0 +1,23 @@
+enum  Role{
+  ADMIN
+  PARTICIPANT
+}
+
+type User{
+    id: ID!
+    Name: String!
+    Email: String!
+    Role: Role!
+}
+
+input CreateUserInput{
+    Name: String!
+    Email: String!
+    Role: Role
+}
+
+input UpdateUserInput{
+    Name: String
+    Email: String
+    Role: Role
+}

@@ -1,0 +1,38 @@
+scalar Time
+
+type Hackathon {
+  id: ID!
+  JudgeID: ID!
+  Name: String!
+  ProblemStatement: String!
+  StartDate: Time!
+  End: Time!
+  Duration: Int!
+  FromDate: Time!
+  ToDate: Time!
+  CategoryID: ID!
+}
+
+input CreateHackathonInput {
+  JudgeID: ID!
+  Name: String!
+  ProblemStatement: String!
+  StartDate: Time!
+  EndDate: Time!
+  Duration: Int!
+  FromDate: Time!
+  ToDate: Time!
+  CategoryID: ID!
+}
+
+input UpdateHackathonInput {
+  JudgeID: ID
+  Name: String
+  ProblemStatement: String
+  StartDate: Time
+  EndDate: Time
+  Duration: Int
+  FromDate: Time
+  ToDate: Time
+  CategoryID: ID
+}

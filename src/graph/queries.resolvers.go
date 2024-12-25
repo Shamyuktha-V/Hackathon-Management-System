@@ -11,7 +11,7 @@ import (
 
 // Hello is the resolver for the hello field.
 func (r *queryResolver) Hello(ctx context.Context) (string, error) {
-	panic(fmt.Errorf("not implemented: Hello - hello"))
+	return "hello", nil
 }
 
 // GetPost is the resolver for the getPost field.

@@ -1,4 +1,4 @@
-package internal
+package app
 
 const (
 	GoogleCallbackURL = "/auth/google/callback"

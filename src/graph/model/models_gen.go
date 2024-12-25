@@ -2,8 +2,125 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+	"time"
+)
+
+type Category struct {
+	ID   string `json:"id"`
+	Name string `json:"Name"`
+}
+
+type CreateCategoryInput struct {
+	Name string `json:"Name"`
+}
+
+type CreateHackathonInput struct {
+	JudgeID          string    `json:"JudgeID"`
+	Name             string    `json:"Name"`
+	ProblemStatement string    `json:"ProblemStatement"`
+	StartDate        time.Time `json:"StartDate"`
+	EndDate          time.Time `json:"EndDate"`
+	Duration         int       `json:"Duration"`
+	FromDate         time.Time `json:"FromDate"`
+	ToDate           time.Time `json:"ToDate"`
+	CategoryID       string    `json:"CategoryID"`
+}
+
+type CreateUserInput struct {
+	Name  string `json:"Name"`
+	Email string `json:"Email"`
+	Role  *Role  `json:"Role,omitempty"`
+}
+
+type Hackathon struct {
+	ID               string    `json:"id"`
+	JudgeID          string    `json:"JudgeID"`
+	Name             string    `json:"Name"`
+	ProblemStatement string    `json:"ProblemStatement"`
+	StartDate        time.Time `json:"StartDate"`
+	End              time.Time `json:"End"`
+	Duration         int       `json:"Duration"`
+	FromDate         time.Time `json:"FromDate"`
+	ToDate           time.Time `json:"ToDate"`
+	CategoryID       string    `json:"CategoryID"`
+}
+
 type Mutation struct {
 }
 
 type Query struct {
+}
+
+type UpdateCategoryInput struct {
+	Name *string `json:"Name,omitempty"`
+}
+
+type UpdateHackathonInput struct {
+	JudgeID          *string    `json:"JudgeID,omitempty"`
+	Name             *string    `json:"Name,omitempty"`
+	ProblemStatement *string    `json:"ProblemStatement,omitempty"`
+	StartDate        *time.Time `json:"StartDate,omitempty"`
+	EndDate          *time.Time `json:"EndDate,omitempty"`
+	Duration         *int       `json:"Duration,omitempty"`
+	FromDate         *time.Time `json:"FromDate,omitempty"`
+	ToDate           *time.Time `json:"ToDate,omitempty"`
+	CategoryID       *string    `json:"CategoryID,omitempty"`
+}
+
+type UpdateUserInput struct {
+	Name  *string `json:"Name,omitempty"`
+	Email *string `json:"Email,omitempty"`
+	Role  *Role   `json:"Role,omitempty"`
+}
+
+type User struct {
+	ID    string `json:"id"`
+	Name  string `json:"Name"`
+	Email string `json:"Email"`
+	Role  Role   `json:"Role"`
+}
+
+type Role string
+
+const (
+	RoleAdmin       Role = "ADMIN"
+	RoleParticipant Role = "PARTICIPANT"
+)
+
+var AllRole = []Role{
+	RoleAdmin,
+	RoleParticipant,
+}
+
+func (e Role) IsValid() bool {
+	switch e {
+	case RoleAdmin, RoleParticipant:
+		return true
+	}
+	return false
+}
+
+func (e Role) String() string {
+	return string(e)
+}
+
+func (e *Role) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Role(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Role", str)
+	}
+	return nil
+}
+
+func (e Role) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
