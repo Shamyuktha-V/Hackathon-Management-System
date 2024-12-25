@@ -1,0 +1,18 @@
+# GraphQL Type for TeamMember
+type TeamMember {
+  ID: ID!        # Unique identifier for the team member
+  TeamID: ID!    # References the Team's ID
+  UserID: ID!    # References the User's ID who is a member of the team
+}
+
+# Input Type for Creating a TeamMember
+input CreateTeamMemberInput {
+  TeamID: ID!    # ID of the team the member belongs to
+  UserID: ID!    # ID of the user who is a member of the team
+}
+
+# Input Type for Updating a TeamMember
+input UpdateTeamMemberInput {
+  TeamID: ID     # Optional update for the team the member belongs to
+  UserID: ID     # Optional update for the user who is a member of the team
+}
