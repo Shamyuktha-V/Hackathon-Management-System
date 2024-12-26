@@ -1,0 +1,19 @@
+type TeamMember {
+  ID: ID!       
+  TeamID: ID!    
+  UserID: ID!    
+}
+
+input CreateTeamMemberInput {
+  TeamID: ID!   
+  UserID : ID ! 
+}
+
+input CreateTeamMemberInputFrontend {
+  TeamID: ID!    
+}
+
+input UpdateTeamMemberInput {
+  TeamID: ID     
+  UserID: ID     
+}

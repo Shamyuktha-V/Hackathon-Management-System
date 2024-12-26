@@ -2,45 +2,42 @@ package repositories
 
 import (
 	"Hackathon-Management-System/src/graph/model"
+	appConfig "Hackathon-Management-System/src/internal/config"
 	"Hackathon-Management-System/src/internal/models"
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type SubmissionRepository struct {
-	DB *gorm.DB
+	AppConfig *appConfig.AppConfig
+	DB        *gorm.DB
+}
+
+func NewSubmissionRepository(appConfig *appConfig.AppConfig) *SubmissionRepository {
+	return &SubmissionRepository{
+		AppConfig: appConfig,
+		DB:        appConfig.DB,
+	}
 }
 
 func InputToEntitySubmission(input interface{}) models.Submission {
 	switch input := input.(type) {
 	case model.CreateSubmissionInput:
 		var entity models.Submission
-		entity.TeamID = input.TeamID
-		entity.HackathonID = input.HackathonID
-		entity.GithubLink = input.GithubLink
-		entity.DocumentURL = input.DocumentURL
-		entity.PresentationURL = input.PresentationURL
-		entity.SubmittedAt = input.SubmittedAt
-		entity.IsSubmitted = input.IsSubmitted
-		entity.KeyFeatures = input.KeyFeatures
-		entity.Feedback = input.Feedback
-		entity.Adherence = input.Adherence
-		entity.InnovationScore = input.InnovationScore
-		entity.FeasibilityScore = input.FeasibilityScore
-		entity.ImpactScore = input.ImpactScore
-		entity.Summary = input.Summary
+		entity.ID = uuid.New()
+		entity.TeamID, _ = uuid.Parse(input.TeamID)
+		entity.HackathonID, _ = uuid.Parse(input.HackathonID)
 		return entity
 
 	case model.UpdateSubmissionInput:
 		var entity models.Submission
 		if input.TeamID != nil {
-			entity.TeamID = *input.TeamID
+			entity.TeamID, _ = uuid.Parse(*input.TeamID)
 		}
 		if input.HackathonID != nil {
-			entity.HackathonID = *input.HackathonID
+			entity.HackathonID, _ = uuid.Parse(*input.HackathonID)
 		}
 		if input.GithubLink != nil {
 			entity.GithubLink = *input.GithubLink
@@ -83,14 +80,10 @@ func InputToEntitySubmission(input interface{}) models.Submission {
 	return models.Submission{}
 }
 
-func NewSubmissionRepository(db *gorm.DB) *SubmissionRepository {
-	return &SubmissionRepository{DB: db}
-}
-
 func (repo *SubmissionRepository) GetSubmission(ctx context.Context, id uuid.UUID) (*model.Submission, error) {
 	var submission *model.Submission
 
-	result := repo.DB.Table(models.Submission{}.TableName()).Where("submission_id =?", id).First(&submission)
+	result := repo.DB.Table(models.Submission{}.TableName()).Where("id =?", id).First(&submission)
 	if result.Error != nil {
 		return submission, result.Error
 	}
@@ -107,6 +100,36 @@ func (repo *SubmissionRepository) GetSubmissionByTeamAndHackathon(ctx context.Co
 	return submission, nil
 }
 
+func (repo *SubmissionRepository) GetHackathonsForAJudge(ctx context.Context, judgeID uuid.UUID) ([]*model.Submission, error) {
+	var submission []*model.Submission
+
+	result := repo.DB.Table(models.Submission{}.TableName()).Where("judge_id =?", judgeID).Find(&submission)
+	if result.Error != nil {
+		return submission, result.Error
+	}
+	return submission, nil
+}
+
+func (repo *SubmissionRepository) GetHackathonsForATeam(ctx context.Context, teamID uuid.UUID) ([]*model.Submission, error) {
+	var submission []*model.Submission
+
+	result := repo.DB.Table(models.Submission{}.TableName()).Preload("Team").Preload("Hackathon").Where("team_id =?", teamID).Find(&submission)
+	if result.Error != nil {
+		return submission, result.Error
+	}
+	return submission, nil
+}
+
+func (repo *SubmissionRepository) GetTeamsForAHackathons(ctx context.Context, hackathonID uuid.UUID) ([]*model.Submission, error) {
+	var submission []*model.Submission
+
+	result := repo.DB.Table(models.Submission{}.TableName()).Preload("Team").Preload("Hackathon").Where("hackathon_id =?", hackathonID).Find(&submission)
+	if result.Error != nil {
+		return submission, result.Error
+	}
+	return submission, nil
+}
+
 func (repo *SubmissionRepository) CreateSubmission(ctx context.Context, input model.CreateSubmissionInput) (*model.Submission, error) {
 	submission := InputToEntitySubmission(input)
 
@@ -115,18 +138,13 @@ func (repo *SubmissionRepository) CreateSubmission(ctx context.Context, input mo
 		return nil, result.Error
 	}
 
-	return repo.GetSubmission(ctx, submission.SubmissionID)
+	return repo.GetSubmission(ctx, submission.ID)
 }
 
 func (repo *SubmissionRepository) UpdateSubmission(ctx context.Context, id uuid.UUID, input model.UpdateSubmissionInput) (*model.Submission, error) {
 	submission := InputToEntitySubmission(input)
-	query := fmt.Sprintf("UPDATE %s SET version = version + 1 WHERE submission_id =?", models.Submission{}.TableName())
 
-	if err := repo.DB.Exec(query, id).Error; err != nil {
-		return nil, err
-	}
-
-	result := repo.DB.Table(models.Submission{}.TableName()).Where("submission_id =?", id).Updates(submission)
+	result := repo.DB.Table(models.Submission{}.TableName()).Where("id =?", id).Updates(submission)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -136,7 +154,7 @@ func (repo *SubmissionRepository) UpdateSubmission(ctx context.Context, id uuid.
 func (repo *SubmissionRepository) DeleteSubmission(ctx context.Context, id uuid.UUID) (string, error) {
 	var submission *model.Submission
 
-	result := repo.DB.Table(models.Submission{}.TableName()).Where("submission_id =?", id).Delete(&submission)
+	result := repo.DB.Table(models.Submission{}.TableName()).Where("id =?", id).Delete(&submission)
 	if result.Error != nil {
 		return "", result.Error
 	}

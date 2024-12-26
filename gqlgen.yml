@@ -13,4 +13,3 @@ exec:
 model:
   filename: ./src/graph/model/models_gen.go  
   package: model                       
-

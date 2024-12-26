@@ -1,5 +1,7 @@
+scalar Upload
+
 type Submission {
-    SubmissionID: ID!
+    ID: ID!
     TeamID: ID!
     HackathonID: ID!
     GithubLink: String!
@@ -7,30 +9,20 @@ type Submission {
     PresentationURL: String!
     SubmittedAt: String!
     IsSubmitted: Boolean!
-    KeyFeatures: String
-    Feedback: String
-    Adherence: Float
-    InnovationScore: Float
-    FeasibilityScore: Float
-    ImpactScore: Float
-    Summary: String
+    KeyFeatures: String!
+    Feedback: String!
+    Adherence: String!
+    InnovationScore: Float!
+    FeasibilityScore: Float!
+    ImpactScore: Float!
+    Summary: String!
+    Hackathon: Hackathon!
+    Team: Team!
 }
 
 input CreateSubmissionInput {
     TeamID: ID!
     HackathonID: ID!
-    GithubLink: String!
-    DocumentURL: String!
-    PresentationURL: String!
-    SubmittedAt: String!
-    IsSubmitted: Boolean!
-    KeyFeatures: String
-    Feedback: String
-    Adherence: Float
-    InnovationScore: Float
-    FeasibilityScore: Float
-    ImpactScore: Float
-    Summary: String
 }
 
 input UpdateSubmissionInput {
@@ -43,7 +35,7 @@ input UpdateSubmissionInput {
     IsSubmitted: Boolean
     KeyFeatures: String
     Feedback: String
-    Adherence: Float
+    Adherence: String
     InnovationScore: Float
     FeasibilityScore: Float
     ImpactScore: Float

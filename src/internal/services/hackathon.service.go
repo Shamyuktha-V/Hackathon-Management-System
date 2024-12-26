@@ -23,7 +23,7 @@ func NewHackathonService(appConfig *appConfig.AppConfig) *HackathonService {
 
 type IHackathonService interface {
 	GetHackathon(ctx context.Context, id uuid.UUID) (*model.Hackathon, error)
-	GetHackathonByCategory(ctx context.Context, categoryID uuid.UUID) (*model.Hackathon, error)
+	GetHackathonByCategory(ctx context.Context, categoryID uuid.UUID) ([]*model.Hackathon, error)
 	GetHackathonsByAttributes(ctx context.Context, judgeID *uuid.UUID, name *string, problemStatement *string, startDate *string, endDate *string, categoryID *uuid.UUID, duaration *int) ([]*model.Hackathon, error)
 	CreateHackathon(ctx context.Context, input model.CreateHackathonInput) (*model.Hackathon, error)
 	UpdateHackathon(ctx context.Context, id uuid.UUID, input model.UpdateHackathonInput) (*model.Hackathon, error)
@@ -40,7 +40,7 @@ func (s HackathonService) GetHackathon(ctx context.Context, id uuid.UUID) (*mode
 	return hackathon, nil
 }
 
-func (s HackathonService) GetHackathonByCategory(ctx context.Context, categoryID uuid.UUID) (*model.Hackathon, error) {
+func (s HackathonService) GetHackathonByCategory(ctx context.Context, categoryID uuid.UUID) ([]*model.Hackathon, error) {
 	hackathon, err := s.HackathonRepository.GetHackathonByCategory(ctx, categoryID)
 	if err != nil {
 		return nil, err

@@ -10,19 +10,20 @@ import (
 )
 
 type TeamService struct {
-	AppConfig      appConfig.AppConfig
+	AppConfig      *appConfig.AppConfig
 	TeamRepository repositories.TeamRepository
 }
 
-func NewTeamService() *TeamService {
+func NewTeamService(appConfig *appConfig.AppConfig) *TeamService {
 	return &TeamService{
-		AppConfig:      *appConfig.NewConfig(),
-		TeamRepository: *repositories.NewTeamRepository(*appConfig.NewConfig()),
+		AppConfig:      appConfig,
+		TeamRepository: *repositories.NewTeamRepository(appConfig),
 	}
 }
 
 type ITeamService interface {
 	GetTeam(ctx context.Context, id uuid.UUID) (*model.Team, error)
+	GetTeamById(ctx context.Context, id uuid.UUID) (*model.Team, error)
 	GetTeamByLeader(ctx context.Context, leaderID uuid.UUID) (*model.Team, error)
 	CreateTeam(ctx context.Context, input model.CreateTeamInput) (*model.Team, error)
 	UpdateTeam(ctx context.Context, id uuid.UUID, input model.UpdateTeamInput) (*model.Team, error)

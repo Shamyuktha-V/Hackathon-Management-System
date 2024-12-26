@@ -56,7 +56,7 @@ type ComplexityRoot struct {
 	Hackathon struct {
 		CategoryID       func(childComplexity int) int
 		Duration         func(childComplexity int) int
-		End              func(childComplexity int) int
+		EndDate          func(childComplexity int) int
 		FromDate         func(childComplexity int) int
 		ID               func(childComplexity int) int
 		JudgeID          func(childComplexity int) int
@@ -67,12 +67,58 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		UpdateUser func(childComplexity int, input model.UpdateUserInput) int
+		AddToTeam           func(childComplexity int, inputFrontend *model.CreateTeamMemberInputFrontend) int
+		AnalyzeCode         func(childComplexity int, githubLink string, problemStatement string) int
+		CreateCategories    func(childComplexity int, input *model.CreateCategoryInput) int
+		CreateHackathon     func(childComplexity int, input *model.CreateHackathonInput) int
+		CreateTeam          func(childComplexity int, teamName string) int
+		RegisterToHackathon func(childComplexity int, input *model.CreateSubmissionInput) int
+		SubmitCode          func(childComplexity int, id string, githubLink string, documentURL graphql.Upload, presentationURL graphql.Upload) int
+		UpdateUser          func(childComplexity int, input model.UpdateUserInput) int
 	}
 
 	Query struct {
-		GetPost func(childComplexity int, id string) int
-		Hello   func(childComplexity int) int
+		GetAllTeamsForAHackathon func(childComplexity int, hackathonID string) int
+		GetCategories            func(childComplexity int) int
+		GetCurrentHackathons     func(childComplexity int) int
+		GetFutureHackathons      func(childComplexity int) int
+		GetHackathonByCategory   func(childComplexity int, id string) int
+		GetHackathonByDuration   func(childComplexity int, duration int) int
+		GetMembersForATeam       func(childComplexity int, teamID string) int
+		GetUserHackathons        func(childComplexity int) int
+	}
+
+	Submission struct {
+		Adherence        func(childComplexity int) int
+		DocumentURL      func(childComplexity int) int
+		FeasibilityScore func(childComplexity int) int
+		Feedback         func(childComplexity int) int
+		GithubLink       func(childComplexity int) int
+		Hackathon        func(childComplexity int) int
+		HackathonID      func(childComplexity int) int
+		ID               func(childComplexity int) int
+		ImpactScore      func(childComplexity int) int
+		InnovationScore  func(childComplexity int) int
+		IsSubmitted      func(childComplexity int) int
+		KeyFeatures      func(childComplexity int) int
+		PresentationURL  func(childComplexity int) int
+		SubmittedAt      func(childComplexity int) int
+		Summary          func(childComplexity int) int
+		Team             func(childComplexity int) int
+		TeamID           func(childComplexity int) int
+	}
+
+	Team struct {
+		ID       func(childComplexity int) int
+		LeaderID func(childComplexity int) int
+		TeamName func(childComplexity int) int
+		TeamSize func(childComplexity int) int
+	}
+
+	TeamMember struct {
+		ID     func(childComplexity int) int
+		TeamID func(childComplexity int) int
+		UserID func(childComplexity int) int
 	}
 
 	User struct {
@@ -85,10 +131,23 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.User, error)
+	RegisterToHackathon(ctx context.Context, input *model.CreateSubmissionInput) (*string, error)
+	CreateHackathon(ctx context.Context, input *model.CreateHackathonInput) (*model.Hackathon, error)
+	CreateCategories(ctx context.Context, input *model.CreateCategoryInput) (*model.Category, error)
+	AddToTeam(ctx context.Context, inputFrontend *model.CreateTeamMemberInputFrontend) (*string, error)
+	CreateTeam(ctx context.Context, teamName string) (*string, error)
+	SubmitCode(ctx context.Context, id string, githubLink string, documentURL graphql.Upload, presentationURL graphql.Upload) (*string, error)
+	AnalyzeCode(ctx context.Context, githubLink string, problemStatement string) (string, error)
 }
 type QueryResolver interface {
-	Hello(ctx context.Context) (string, error)
-	GetPost(ctx context.Context, id string) (string, error)
+	GetCurrentHackathons(ctx context.Context) ([]*model.Hackathon, error)
+	GetFutureHackathons(ctx context.Context) ([]*model.Hackathon, error)
+	GetHackathonByCategory(ctx context.Context, id string) ([]*model.Hackathon, error)
+	GetHackathonByDuration(ctx context.Context, duration int) ([]*model.Hackathon, error)
+	GetCategories(ctx context.Context) ([]*model.Category, error)
+	GetUserHackathons(ctx context.Context) ([]*model.Submission, error)
+	GetAllTeamsForAHackathon(ctx context.Context, hackathonID string) ([]*model.Submission, error)
+	GetMembersForATeam(ctx context.Context, teamID string) ([]*model.TeamMember, error)
 }
 
 type executableSchema struct {
@@ -138,12 +197,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Hackathon.Duration(childComplexity), true
 
-	case "Hackathon.End":
-		if e.complexity.Hackathon.End == nil {
+	case "Hackathon.EndDate":
+		if e.complexity.Hackathon.EndDate == nil {
 			break
 		}
 
-		return e.complexity.Hackathon.End(childComplexity), true
+		return e.complexity.Hackathon.EndDate(childComplexity), true
 
 	case "Hackathon.FromDate":
 		if e.complexity.Hackathon.FromDate == nil {
@@ -194,6 +253,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Hackathon.ToDate(childComplexity), true
 
+	case "Mutation.AddToTeam":
+		if e.complexity.Mutation.AddToTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_AddToTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddToTeam(childComplexity, args["inputFrontend"].(*model.CreateTeamMemberInputFrontend)), true
+
+	case "Mutation.AnalyzeCode":
+		if e.complexity.Mutation.AnalyzeCode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_AnalyzeCode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AnalyzeCode(childComplexity, args["githubLink"].(string), args["problemStatement"].(string)), true
+
+	case "Mutation.CreateCategories":
+		if e.complexity.Mutation.CreateCategories == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateCategories_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCategories(childComplexity, args["input"].(*model.CreateCategoryInput)), true
+
+	case "Mutation.CreateHackathon":
+		if e.complexity.Mutation.CreateHackathon == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateHackathon_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateHackathon(childComplexity, args["input"].(*model.CreateHackathonInput)), true
+
+	case "Mutation.CreateTeam":
+		if e.complexity.Mutation.CreateTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateTeam(childComplexity, args["teamName"].(string)), true
+
+	case "Mutation.RegisterToHackathon":
+		if e.complexity.Mutation.RegisterToHackathon == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_RegisterToHackathon_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterToHackathon(childComplexity, args["input"].(*model.CreateSubmissionInput)), true
+
+	case "Mutation.SubmitCode":
+		if e.complexity.Mutation.SubmitCode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_SubmitCode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SubmitCode(childComplexity, args["id"].(string), args["GithubLink"].(string), args["DocumentURL"].(graphql.Upload), args["PresentationURL"].(graphql.Upload)), true
+
 	case "Mutation.UpdateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
 			break
@@ -206,24 +349,249 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateUserInput)), true
 
-	case "Query.getPost":
-		if e.complexity.Query.GetPost == nil {
+	case "Query.GetAllTeamsForAHackathon":
+		if e.complexity.Query.GetAllTeamsForAHackathon == nil {
 			break
 		}
 
-		args, err := ec.field_Query_getPost_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_GetAllTeamsForAHackathon_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.GetPost(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.GetAllTeamsForAHackathon(childComplexity, args["HackathonID"].(string)), true
 
-	case "Query.hello":
-		if e.complexity.Query.Hello == nil {
+	case "Query.GetCategories":
+		if e.complexity.Query.GetCategories == nil {
 			break
 		}
 
-		return e.complexity.Query.Hello(childComplexity), true
+		return e.complexity.Query.GetCategories(childComplexity), true
+
+	case "Query.GetCurrentHackathons":
+		if e.complexity.Query.GetCurrentHackathons == nil {
+			break
+		}
+
+		return e.complexity.Query.GetCurrentHackathons(childComplexity), true
+
+	case "Query.GetFutureHackathons":
+		if e.complexity.Query.GetFutureHackathons == nil {
+			break
+		}
+
+		return e.complexity.Query.GetFutureHackathons(childComplexity), true
+
+	case "Query.GetHackathonByCategory":
+		if e.complexity.Query.GetHackathonByCategory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetHackathonByCategory_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetHackathonByCategory(childComplexity, args["id"].(string)), true
+
+	case "Query.GetHackathonByDuration":
+		if e.complexity.Query.GetHackathonByDuration == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetHackathonByDuration_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetHackathonByDuration(childComplexity, args["duration"].(int)), true
+
+	case "Query.GetMembersForATeam":
+		if e.complexity.Query.GetMembersForATeam == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetMembersForATeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetMembersForATeam(childComplexity, args["teamID"].(string)), true
+
+	case "Query.GetUserHackathons":
+		if e.complexity.Query.GetUserHackathons == nil {
+			break
+		}
+
+		return e.complexity.Query.GetUserHackathons(childComplexity), true
+
+	case "Submission.Adherence":
+		if e.complexity.Submission.Adherence == nil {
+			break
+		}
+
+		return e.complexity.Submission.Adherence(childComplexity), true
+
+	case "Submission.DocumentURL":
+		if e.complexity.Submission.DocumentURL == nil {
+			break
+		}
+
+		return e.complexity.Submission.DocumentURL(childComplexity), true
+
+	case "Submission.FeasibilityScore":
+		if e.complexity.Submission.FeasibilityScore == nil {
+			break
+		}
+
+		return e.complexity.Submission.FeasibilityScore(childComplexity), true
+
+	case "Submission.Feedback":
+		if e.complexity.Submission.Feedback == nil {
+			break
+		}
+
+		return e.complexity.Submission.Feedback(childComplexity), true
+
+	case "Submission.GithubLink":
+		if e.complexity.Submission.GithubLink == nil {
+			break
+		}
+
+		return e.complexity.Submission.GithubLink(childComplexity), true
+
+	case "Submission.Hackathon":
+		if e.complexity.Submission.Hackathon == nil {
+			break
+		}
+
+		return e.complexity.Submission.Hackathon(childComplexity), true
+
+	case "Submission.HackathonID":
+		if e.complexity.Submission.HackathonID == nil {
+			break
+		}
+
+		return e.complexity.Submission.HackathonID(childComplexity), true
+
+	case "Submission.ID":
+		if e.complexity.Submission.ID == nil {
+			break
+		}
+
+		return e.complexity.Submission.ID(childComplexity), true
+
+	case "Submission.ImpactScore":
+		if e.complexity.Submission.ImpactScore == nil {
+			break
+		}
+
+		return e.complexity.Submission.ImpactScore(childComplexity), true
+
+	case "Submission.InnovationScore":
+		if e.complexity.Submission.InnovationScore == nil {
+			break
+		}
+
+		return e.complexity.Submission.InnovationScore(childComplexity), true
+
+	case "Submission.IsSubmitted":
+		if e.complexity.Submission.IsSubmitted == nil {
+			break
+		}
+
+		return e.complexity.Submission.IsSubmitted(childComplexity), true
+
+	case "Submission.KeyFeatures":
+		if e.complexity.Submission.KeyFeatures == nil {
+			break
+		}
+
+		return e.complexity.Submission.KeyFeatures(childComplexity), true
+
+	case "Submission.PresentationURL":
+		if e.complexity.Submission.PresentationURL == nil {
+			break
+		}
+
+		return e.complexity.Submission.PresentationURL(childComplexity), true
+
+	case "Submission.SubmittedAt":
+		if e.complexity.Submission.SubmittedAt == nil {
+			break
+		}
+
+		return e.complexity.Submission.SubmittedAt(childComplexity), true
+
+	case "Submission.Summary":
+		if e.complexity.Submission.Summary == nil {
+			break
+		}
+
+		return e.complexity.Submission.Summary(childComplexity), true
+
+	case "Submission.Team":
+		if e.complexity.Submission.Team == nil {
+			break
+		}
+
+		return e.complexity.Submission.Team(childComplexity), true
+
+	case "Submission.TeamID":
+		if e.complexity.Submission.TeamID == nil {
+			break
+		}
+
+		return e.complexity.Submission.TeamID(childComplexity), true
+
+	case "Team.ID":
+		if e.complexity.Team.ID == nil {
+			break
+		}
+
+		return e.complexity.Team.ID(childComplexity), true
+
+	case "Team.LeaderID":
+		if e.complexity.Team.LeaderID == nil {
+			break
+		}
+
+		return e.complexity.Team.LeaderID(childComplexity), true
+
+	case "Team.TeamName":
+		if e.complexity.Team.TeamName == nil {
+			break
+		}
+
+		return e.complexity.Team.TeamName(childComplexity), true
+
+	case "Team.TeamSize":
+		if e.complexity.Team.TeamSize == nil {
+			break
+		}
+
+		return e.complexity.Team.TeamSize(childComplexity), true
+
+	case "TeamMember.ID":
+		if e.complexity.TeamMember.ID == nil {
+			break
+		}
+
+		return e.complexity.TeamMember.ID(childComplexity), true
+
+	case "TeamMember.TeamID":
+		if e.complexity.TeamMember.TeamID == nil {
+			break
+		}
+
+		return e.complexity.TeamMember.TeamID(childComplexity), true
+
+	case "TeamMember.UserID":
+		if e.complexity.TeamMember.UserID == nil {
+			break
+		}
+
+		return e.complexity.TeamMember.UserID(childComplexity), true
 
 	case "User.Email":
 		if e.complexity.User.Email == nil {
@@ -263,9 +631,16 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateCategoryInput,
 		ec.unmarshalInputCreateHackathonInput,
+		ec.unmarshalInputCreateSubmissionInput,
+		ec.unmarshalInputCreateTeamInput,
+		ec.unmarshalInputCreateTeamMemberInput,
+		ec.unmarshalInputCreateTeamMemberInputFrontend,
 		ec.unmarshalInputCreateUserInput,
 		ec.unmarshalInputUpdateCategoryInput,
 		ec.unmarshalInputUpdateHackathonInput,
+		ec.unmarshalInputUpdateSubmissionInput,
+		ec.unmarshalInputUpdateTeamInput,
+		ec.unmarshalInputUpdateTeamMemberInput,
 		ec.unmarshalInputUpdateUserInput,
 	)
 	first := true
@@ -363,7 +738,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "category.graphqls" "hackathon.graphqls" "mutation.graphqls" "queries.graphqls" "user.graphqls"
+//go:embed "category.graphqls" "hackathon.graphqls" "mutation.graphqls" "queries.graphqls" "submission.graphqls" "team.graphqls" "teamMember.graphqls" "user.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -379,6 +754,9 @@ var sources = []*ast.Source{
 	{Name: "hackathon.graphqls", Input: sourceData("hackathon.graphqls"), BuiltIn: false},
 	{Name: "mutation.graphqls", Input: sourceData("mutation.graphqls"), BuiltIn: false},
 	{Name: "queries.graphqls", Input: sourceData("queries.graphqls"), BuiltIn: false},
+	{Name: "submission.graphqls", Input: sourceData("submission.graphqls"), BuiltIn: false},
+	{Name: "team.graphqls", Input: sourceData("team.graphqls"), BuiltIn: false},
+	{Name: "teamMember.graphqls", Input: sourceData("teamMember.graphqls"), BuiltIn: false},
 	{Name: "user.graphqls", Input: sourceData("user.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -386,6 +764,338 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_AddToTeam_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_AddToTeam_argsInputFrontend(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["inputFrontend"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_AddToTeam_argsInputFrontend(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*model.CreateTeamMemberInputFrontend, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["inputFrontend"]
+	if !ok {
+		var zeroVal *model.CreateTeamMemberInputFrontend
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("inputFrontend"))
+	if tmp, ok := rawArgs["inputFrontend"]; ok {
+		return ec.unmarshalOCreateTeamMemberInputFrontend2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCreateTeamMemberInputFrontend(ctx, tmp)
+	}
+
+	var zeroVal *model.CreateTeamMemberInputFrontend
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_AnalyzeCode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_AnalyzeCode_argsGithubLink(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["githubLink"] = arg0
+	arg1, err := ec.field_Mutation_AnalyzeCode_argsProblemStatement(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["problemStatement"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_AnalyzeCode_argsGithubLink(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["githubLink"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("githubLink"))
+	if tmp, ok := rawArgs["githubLink"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_AnalyzeCode_argsProblemStatement(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["problemStatement"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("problemStatement"))
+	if tmp, ok := rawArgs["problemStatement"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_CreateCategories_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_CreateCategories_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_CreateCategories_argsInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*model.CreateCategoryInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["input"]
+	if !ok {
+		var zeroVal *model.CreateCategoryInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalOCreateCategoryInput2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCreateCategoryInput(ctx, tmp)
+	}
+
+	var zeroVal *model.CreateCategoryInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_CreateHackathon_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_CreateHackathon_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_CreateHackathon_argsInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*model.CreateHackathonInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["input"]
+	if !ok {
+		var zeroVal *model.CreateHackathonInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalOCreateHackathonInput2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCreateHackathonInput(ctx, tmp)
+	}
+
+	var zeroVal *model.CreateHackathonInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_CreateTeam_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_CreateTeam_argsTeamName(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["teamName"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_CreateTeam_argsTeamName(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["teamName"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("teamName"))
+	if tmp, ok := rawArgs["teamName"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_RegisterToHackathon_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_RegisterToHackathon_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_RegisterToHackathon_argsInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*model.CreateSubmissionInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["input"]
+	if !ok {
+		var zeroVal *model.CreateSubmissionInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalOCreateSubmissionInput2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCreateSubmissionInput(ctx, tmp)
+	}
+
+	var zeroVal *model.CreateSubmissionInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_SubmitCode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_SubmitCode_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := ec.field_Mutation_SubmitCode_argsGithubLink(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["GithubLink"] = arg1
+	arg2, err := ec.field_Mutation_SubmitCode_argsDocumentURL(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["DocumentURL"] = arg2
+	arg3, err := ec.field_Mutation_SubmitCode_argsPresentationURL(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["PresentationURL"] = arg3
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_SubmitCode_argsID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["id"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_SubmitCode_argsGithubLink(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["GithubLink"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("GithubLink"))
+	if tmp, ok := rawArgs["GithubLink"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_SubmitCode_argsDocumentURL(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (graphql.Upload, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["DocumentURL"]
+	if !ok {
+		var zeroVal graphql.Upload
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("DocumentURL"))
+	if tmp, ok := rawArgs["DocumentURL"]; ok {
+		return ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, tmp)
+	}
+
+	var zeroVal graphql.Upload
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_SubmitCode_argsPresentationURL(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (graphql.Upload, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["PresentationURL"]
+	if !ok {
+		var zeroVal graphql.Upload
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("PresentationURL"))
+	if tmp, ok := rawArgs["PresentationURL"]; ok {
+		return ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, tmp)
+	}
+
+	var zeroVal graphql.Upload
+	return zeroVal, nil
+}
 
 func (ec *executionContext) field_Mutation_UpdateUser_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
@@ -419,6 +1129,134 @@ func (ec *executionContext) field_Mutation_UpdateUser_argsInput(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Query_GetAllTeamsForAHackathon_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_GetAllTeamsForAHackathon_argsHackathonID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["HackathonID"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_GetAllTeamsForAHackathon_argsHackathonID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["HackathonID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("HackathonID"))
+	if tmp, ok := rawArgs["HackathonID"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_GetHackathonByCategory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_GetHackathonByCategory_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_GetHackathonByCategory_argsID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["id"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_GetHackathonByDuration_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_GetHackathonByDuration_argsDuration(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["duration"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_GetHackathonByDuration_argsDuration(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (int, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["duration"]
+	if !ok {
+		var zeroVal int
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("duration"))
+	if tmp, ok := rawArgs["duration"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_GetMembersForATeam_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_GetMembersForATeam_argsTeamID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["teamID"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_GetMembersForATeam_argsTeamID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["teamID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("teamID"))
+	if tmp, ok := rawArgs["teamID"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -445,38 +1283,6 @@ func (ec *executionContext) field_Query___type_argsName(
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 	if tmp, ok := rawArgs["name"]; ok {
 		return ec.unmarshalNString2string(ctx, tmp)
-	}
-
-	var zeroVal string
-	return zeroVal, nil
-}
-
-func (ec *executionContext) field_Query_getPost_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Query_getPost_argsID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	return args, nil
-}
-func (ec *executionContext) field_Query_getPost_argsID(
-	ctx context.Context,
-	rawArgs map[string]any,
-) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
-		var zeroVal string
-		return zeroVal, nil
-	}
-
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-	if tmp, ok := rawArgs["id"]; ok {
-		return ec.unmarshalNID2string(ctx, tmp)
 	}
 
 	var zeroVal string
@@ -845,9 +1651,9 @@ func (ec *executionContext) _Hackathon_StartDate(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNDateTime2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Hackathon_StartDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -857,14 +1663,14 @@ func (ec *executionContext) fieldContext_Hackathon_StartDate(_ context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
+			return nil, errors.New("field of type DateTime does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Hackathon_End(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Hackathon_End(ctx, field)
+func (ec *executionContext) _Hackathon_EndDate(ctx context.Context, field graphql.CollectedField, obj *model.Hackathon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Hackathon_EndDate(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -877,7 +1683,7 @@ func (ec *executionContext) _Hackathon_End(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.End, nil
+		return obj.EndDate, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -889,19 +1695,19 @@ func (ec *executionContext) _Hackathon_End(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNDateTime2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Hackathon_End(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Hackathon_EndDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Hackathon",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
+			return nil, errors.New("field of type DateTime does not have child fields")
 		},
 	}
 	return fc, nil
@@ -977,9 +1783,9 @@ func (ec *executionContext) _Hackathon_FromDate(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNDateTime2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Hackathon_FromDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -989,7 +1795,7 @@ func (ec *executionContext) fieldContext_Hackathon_FromDate(_ context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
+			return nil, errors.New("field of type DateTime does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1021,9 +1827,9 @@ func (ec *executionContext) _Hackathon_ToDate(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNDateTime2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Hackathon_ToDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1033,7 +1839,7 @@ func (ec *executionContext) fieldContext_Hackathon_ToDate(_ context.Context, fie
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
+			return nil, errors.New("field of type DateTime does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1145,8 +1951,8 @@ func (ec *executionContext) fieldContext_Mutation_UpdateUser(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_hello(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_hello(ctx, field)
+func (ec *executionContext) _Mutation_RegisterToHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_RegisterToHackathon(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1159,70 +1965,23 @@ func (ec *executionContext) _Query_hello(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Hello(rctx)
+		return ec.resolvers.Mutation().RegisterToHackathon(rctx, fc.Args["input"].(*model.CreateSubmissionInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_hello(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_RegisterToHackathon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_getPost(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getPost(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetPost(rctx, fc.Args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_getPost(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
+		Object:     "Mutation",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
@@ -1237,7 +1996,896 @@ func (ec *executionContext) fieldContext_Query_getPost(ctx context.Context, fiel
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getPost_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_RegisterToHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_CreateHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateHackathon(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateHackathon(rctx, fc.Args["input"].(*model.CreateHackathonInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Hackathon)
+	fc.Result = res
+	return ec.marshalOHackathon2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateHackathon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Hackathon_id(ctx, field)
+			case "JudgeID":
+				return ec.fieldContext_Hackathon_JudgeID(ctx, field)
+			case "Name":
+				return ec.fieldContext_Hackathon_Name(ctx, field)
+			case "ProblemStatement":
+				return ec.fieldContext_Hackathon_ProblemStatement(ctx, field)
+			case "StartDate":
+				return ec.fieldContext_Hackathon_StartDate(ctx, field)
+			case "EndDate":
+				return ec.fieldContext_Hackathon_EndDate(ctx, field)
+			case "Duration":
+				return ec.fieldContext_Hackathon_Duration(ctx, field)
+			case "FromDate":
+				return ec.fieldContext_Hackathon_FromDate(ctx, field)
+			case "ToDate":
+				return ec.fieldContext_Hackathon_ToDate(ctx, field)
+			case "CategoryID":
+				return ec.fieldContext_Hackathon_CategoryID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_CreateCategories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateCategories(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCategories(rctx, fc.Args["input"].(*model.CreateCategoryInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Category)
+	fc.Result = res
+	return ec.marshalOCategory2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateCategories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Category_id(ctx, field)
+			case "Name":
+				return ec.fieldContext_Category_Name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Category", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateCategories_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_AddToTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_AddToTeam(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddToTeam(rctx, fc.Args["inputFrontend"].(*model.CreateTeamMemberInputFrontend))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_AddToTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_AddToTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_CreateTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateTeam(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateTeam(rctx, fc.Args["teamName"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_SubmitCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_SubmitCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SubmitCode(rctx, fc.Args["id"].(string), fc.Args["GithubLink"].(string), fc.Args["DocumentURL"].(graphql.Upload), fc.Args["PresentationURL"].(graphql.Upload))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_SubmitCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_SubmitCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_AnalyzeCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_AnalyzeCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AnalyzeCode(rctx, fc.Args["githubLink"].(string), fc.Args["problemStatement"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_AnalyzeCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_AnalyzeCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetCurrentHackathons(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetCurrentHackathons(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCurrentHackathons(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Hackathon)
+	fc.Result = res
+	return ec.marshalOHackathon2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetCurrentHackathons(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Hackathon_id(ctx, field)
+			case "JudgeID":
+				return ec.fieldContext_Hackathon_JudgeID(ctx, field)
+			case "Name":
+				return ec.fieldContext_Hackathon_Name(ctx, field)
+			case "ProblemStatement":
+				return ec.fieldContext_Hackathon_ProblemStatement(ctx, field)
+			case "StartDate":
+				return ec.fieldContext_Hackathon_StartDate(ctx, field)
+			case "EndDate":
+				return ec.fieldContext_Hackathon_EndDate(ctx, field)
+			case "Duration":
+				return ec.fieldContext_Hackathon_Duration(ctx, field)
+			case "FromDate":
+				return ec.fieldContext_Hackathon_FromDate(ctx, field)
+			case "ToDate":
+				return ec.fieldContext_Hackathon_ToDate(ctx, field)
+			case "CategoryID":
+				return ec.fieldContext_Hackathon_CategoryID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetFutureHackathons(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetFutureHackathons(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetFutureHackathons(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Hackathon)
+	fc.Result = res
+	return ec.marshalOHackathon2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetFutureHackathons(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Hackathon_id(ctx, field)
+			case "JudgeID":
+				return ec.fieldContext_Hackathon_JudgeID(ctx, field)
+			case "Name":
+				return ec.fieldContext_Hackathon_Name(ctx, field)
+			case "ProblemStatement":
+				return ec.fieldContext_Hackathon_ProblemStatement(ctx, field)
+			case "StartDate":
+				return ec.fieldContext_Hackathon_StartDate(ctx, field)
+			case "EndDate":
+				return ec.fieldContext_Hackathon_EndDate(ctx, field)
+			case "Duration":
+				return ec.fieldContext_Hackathon_Duration(ctx, field)
+			case "FromDate":
+				return ec.fieldContext_Hackathon_FromDate(ctx, field)
+			case "ToDate":
+				return ec.fieldContext_Hackathon_ToDate(ctx, field)
+			case "CategoryID":
+				return ec.fieldContext_Hackathon_CategoryID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetHackathonByCategory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetHackathonByCategory(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetHackathonByCategory(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Hackathon)
+	fc.Result = res
+	return ec.marshalOHackathon2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetHackathonByCategory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Hackathon_id(ctx, field)
+			case "JudgeID":
+				return ec.fieldContext_Hackathon_JudgeID(ctx, field)
+			case "Name":
+				return ec.fieldContext_Hackathon_Name(ctx, field)
+			case "ProblemStatement":
+				return ec.fieldContext_Hackathon_ProblemStatement(ctx, field)
+			case "StartDate":
+				return ec.fieldContext_Hackathon_StartDate(ctx, field)
+			case "EndDate":
+				return ec.fieldContext_Hackathon_EndDate(ctx, field)
+			case "Duration":
+				return ec.fieldContext_Hackathon_Duration(ctx, field)
+			case "FromDate":
+				return ec.fieldContext_Hackathon_FromDate(ctx, field)
+			case "ToDate":
+				return ec.fieldContext_Hackathon_ToDate(ctx, field)
+			case "CategoryID":
+				return ec.fieldContext_Hackathon_CategoryID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetHackathonByCategory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetHackathonByDuration(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetHackathonByDuration(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetHackathonByDuration(rctx, fc.Args["duration"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Hackathon)
+	fc.Result = res
+	return ec.marshalOHackathon2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetHackathonByDuration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Hackathon_id(ctx, field)
+			case "JudgeID":
+				return ec.fieldContext_Hackathon_JudgeID(ctx, field)
+			case "Name":
+				return ec.fieldContext_Hackathon_Name(ctx, field)
+			case "ProblemStatement":
+				return ec.fieldContext_Hackathon_ProblemStatement(ctx, field)
+			case "StartDate":
+				return ec.fieldContext_Hackathon_StartDate(ctx, field)
+			case "EndDate":
+				return ec.fieldContext_Hackathon_EndDate(ctx, field)
+			case "Duration":
+				return ec.fieldContext_Hackathon_Duration(ctx, field)
+			case "FromDate":
+				return ec.fieldContext_Hackathon_FromDate(ctx, field)
+			case "ToDate":
+				return ec.fieldContext_Hackathon_ToDate(ctx, field)
+			case "CategoryID":
+				return ec.fieldContext_Hackathon_CategoryID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetHackathonByDuration_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetCategories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetCategories(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCategories(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Category)
+	fc.Result = res
+	return ec.marshalOCategory2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetCategories(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Category_id(ctx, field)
+			case "Name":
+				return ec.fieldContext_Category_Name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Category", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetUserHackathons(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetUserHackathons(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserHackathons(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Submission)
+	fc.Result = res
+	return ec.marshalOSubmission2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐSubmission(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetUserHackathons(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Submission_ID(ctx, field)
+			case "TeamID":
+				return ec.fieldContext_Submission_TeamID(ctx, field)
+			case "HackathonID":
+				return ec.fieldContext_Submission_HackathonID(ctx, field)
+			case "GithubLink":
+				return ec.fieldContext_Submission_GithubLink(ctx, field)
+			case "DocumentURL":
+				return ec.fieldContext_Submission_DocumentURL(ctx, field)
+			case "PresentationURL":
+				return ec.fieldContext_Submission_PresentationURL(ctx, field)
+			case "SubmittedAt":
+				return ec.fieldContext_Submission_SubmittedAt(ctx, field)
+			case "IsSubmitted":
+				return ec.fieldContext_Submission_IsSubmitted(ctx, field)
+			case "KeyFeatures":
+				return ec.fieldContext_Submission_KeyFeatures(ctx, field)
+			case "Feedback":
+				return ec.fieldContext_Submission_Feedback(ctx, field)
+			case "Adherence":
+				return ec.fieldContext_Submission_Adherence(ctx, field)
+			case "InnovationScore":
+				return ec.fieldContext_Submission_InnovationScore(ctx, field)
+			case "FeasibilityScore":
+				return ec.fieldContext_Submission_FeasibilityScore(ctx, field)
+			case "ImpactScore":
+				return ec.fieldContext_Submission_ImpactScore(ctx, field)
+			case "Summary":
+				return ec.fieldContext_Submission_Summary(ctx, field)
+			case "Hackathon":
+				return ec.fieldContext_Submission_Hackathon(ctx, field)
+			case "Team":
+				return ec.fieldContext_Submission_Team(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Submission", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetAllTeamsForAHackathon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAllTeamsForAHackathon(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllTeamsForAHackathon(rctx, fc.Args["HackathonID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Submission)
+	fc.Result = res
+	return ec.marshalOSubmission2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐSubmission(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetAllTeamsForAHackathon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Submission_ID(ctx, field)
+			case "TeamID":
+				return ec.fieldContext_Submission_TeamID(ctx, field)
+			case "HackathonID":
+				return ec.fieldContext_Submission_HackathonID(ctx, field)
+			case "GithubLink":
+				return ec.fieldContext_Submission_GithubLink(ctx, field)
+			case "DocumentURL":
+				return ec.fieldContext_Submission_DocumentURL(ctx, field)
+			case "PresentationURL":
+				return ec.fieldContext_Submission_PresentationURL(ctx, field)
+			case "SubmittedAt":
+				return ec.fieldContext_Submission_SubmittedAt(ctx, field)
+			case "IsSubmitted":
+				return ec.fieldContext_Submission_IsSubmitted(ctx, field)
+			case "KeyFeatures":
+				return ec.fieldContext_Submission_KeyFeatures(ctx, field)
+			case "Feedback":
+				return ec.fieldContext_Submission_Feedback(ctx, field)
+			case "Adherence":
+				return ec.fieldContext_Submission_Adherence(ctx, field)
+			case "InnovationScore":
+				return ec.fieldContext_Submission_InnovationScore(ctx, field)
+			case "FeasibilityScore":
+				return ec.fieldContext_Submission_FeasibilityScore(ctx, field)
+			case "ImpactScore":
+				return ec.fieldContext_Submission_ImpactScore(ctx, field)
+			case "Summary":
+				return ec.fieldContext_Submission_Summary(ctx, field)
+			case "Hackathon":
+				return ec.fieldContext_Submission_Hackathon(ctx, field)
+			case "Team":
+				return ec.fieldContext_Submission_Team(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Submission", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetAllTeamsForAHackathon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetMembersForATeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetMembersForATeam(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetMembersForATeam(rctx, fc.Args["teamID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.TeamMember)
+	fc.Result = res
+	return ec.marshalOTeamMember2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐTeamMember(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetMembersForATeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_TeamMember_ID(ctx, field)
+			case "TeamID":
+				return ec.fieldContext_TeamMember_TeamID(ctx, field)
+			case "UserID":
+				return ec.fieldContext_TeamMember_UserID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TeamMember", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetMembersForATeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -1368,6 +3016,1094 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_ID(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_ID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_TeamID(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_TeamID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TeamID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_TeamID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_HackathonID(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_HackathonID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HackathonID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_HackathonID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_GithubLink(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_GithubLink(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GithubLink, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_GithubLink(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_DocumentURL(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_DocumentURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DocumentURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_DocumentURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_PresentationURL(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_PresentationURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PresentationURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_PresentationURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_SubmittedAt(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_SubmittedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SubmittedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_SubmittedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_IsSubmitted(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_IsSubmitted(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsSubmitted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_IsSubmitted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_KeyFeatures(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_KeyFeatures(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KeyFeatures, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_KeyFeatures(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_Feedback(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_Feedback(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Feedback, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_Feedback(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_Adherence(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_Adherence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Adherence, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_Adherence(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_InnovationScore(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_InnovationScore(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InnovationScore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_InnovationScore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_FeasibilityScore(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_FeasibilityScore(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeasibilityScore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_FeasibilityScore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_ImpactScore(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_ImpactScore(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ImpactScore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_ImpactScore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_Summary(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_Summary(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Summary, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_Summary(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_Hackathon(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_Hackathon(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Hackathon, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Hackathon)
+	fc.Result = res
+	return ec.marshalNHackathon2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_Hackathon(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Hackathon_id(ctx, field)
+			case "JudgeID":
+				return ec.fieldContext_Hackathon_JudgeID(ctx, field)
+			case "Name":
+				return ec.fieldContext_Hackathon_Name(ctx, field)
+			case "ProblemStatement":
+				return ec.fieldContext_Hackathon_ProblemStatement(ctx, field)
+			case "StartDate":
+				return ec.fieldContext_Hackathon_StartDate(ctx, field)
+			case "EndDate":
+				return ec.fieldContext_Hackathon_EndDate(ctx, field)
+			case "Duration":
+				return ec.fieldContext_Hackathon_Duration(ctx, field)
+			case "FromDate":
+				return ec.fieldContext_Hackathon_FromDate(ctx, field)
+			case "ToDate":
+				return ec.fieldContext_Hackathon_ToDate(ctx, field)
+			case "CategoryID":
+				return ec.fieldContext_Hackathon_CategoryID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Hackathon", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Submission_Team(ctx context.Context, field graphql.CollectedField, obj *model.Submission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Submission_Team(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Team, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Team)
+	fc.Result = res
+	return ec.marshalNTeam2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Submission_Team(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Submission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Team_ID(ctx, field)
+			case "TeamName":
+				return ec.fieldContext_Team_TeamName(ctx, field)
+			case "LeaderID":
+				return ec.fieldContext_Team_LeaderID(ctx, field)
+			case "TeamSize":
+				return ec.fieldContext_Team_TeamSize(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Team", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Team_ID(ctx context.Context, field graphql.CollectedField, obj *model.Team) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Team_ID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Team_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Team",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Team_TeamName(ctx context.Context, field graphql.CollectedField, obj *model.Team) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Team_TeamName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TeamName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Team_TeamName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Team",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Team_LeaderID(ctx context.Context, field graphql.CollectedField, obj *model.Team) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Team_LeaderID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LeaderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Team_LeaderID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Team",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Team_TeamSize(ctx context.Context, field graphql.CollectedField, obj *model.Team) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Team_TeamSize(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TeamSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Team_TeamSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Team",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TeamMember_ID(ctx context.Context, field graphql.CollectedField, obj *model.TeamMember) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TeamMember_ID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TeamMember_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TeamMember",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TeamMember_TeamID(ctx context.Context, field graphql.CollectedField, obj *model.TeamMember) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TeamMember_TeamID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TeamID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TeamMember_TeamID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TeamMember",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TeamMember_UserID(ctx context.Context, field graphql.CollectedField, obj *model.TeamMember) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TeamMember_UserID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TeamMember_UserID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TeamMember",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3432,6 +6168,142 @@ func (ec *executionContext) unmarshalInputCreateHackathonInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateSubmissionInput(ctx context.Context, obj any) (model.CreateSubmissionInput, error) {
+	var it model.CreateSubmissionInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"TeamID", "HackathonID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "TeamID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TeamID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TeamID = data
+		case "HackathonID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("HackathonID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HackathonID = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateTeamInput(ctx context.Context, obj any) (model.CreateTeamInput, error) {
+	var it model.CreateTeamInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"TeamName", "LeaderID", "TeamSize"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "TeamName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TeamName"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TeamName = data
+		case "LeaderID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("LeaderID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LeaderID = data
+		case "TeamSize":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TeamSize"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TeamSize = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateTeamMemberInput(ctx context.Context, obj any) (model.CreateTeamMemberInput, error) {
+	var it model.CreateTeamMemberInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"TeamID", "UserID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "TeamID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TeamID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TeamID = data
+		case "UserID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UserID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateTeamMemberInputFrontend(ctx context.Context, obj any) (model.CreateTeamMemberInputFrontend, error) {
+	var it model.CreateTeamMemberInputFrontend
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"TeamID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "TeamID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TeamID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TeamID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, obj any) (model.CreateUserInput, error) {
 	var it model.CreateUserInput
 	asMap := map[string]any{}
@@ -3583,6 +6455,199 @@ func (ec *executionContext) unmarshalInputUpdateHackathonInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateSubmissionInput(ctx context.Context, obj any) (model.UpdateSubmissionInput, error) {
+	var it model.UpdateSubmissionInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"TeamID", "HackathonID", "GithubLink", "DocumentURL", "PresentationURL", "SubmittedAt", "IsSubmitted", "KeyFeatures", "Feedback", "Adherence", "InnovationScore", "FeasibilityScore", "ImpactScore", "Summary"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "TeamID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TeamID"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TeamID = data
+		case "HackathonID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("HackathonID"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HackathonID = data
+		case "GithubLink":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("GithubLink"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GithubLink = data
+		case "DocumentURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("DocumentURL"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DocumentURL = data
+		case "PresentationURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("PresentationURL"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PresentationURL = data
+		case "SubmittedAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SubmittedAt"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SubmittedAt = data
+		case "IsSubmitted":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("IsSubmitted"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsSubmitted = data
+		case "KeyFeatures":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KeyFeatures"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.KeyFeatures = data
+		case "Feedback":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Feedback"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Feedback = data
+		case "Adherence":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Adherence"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Adherence = data
+		case "InnovationScore":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("InnovationScore"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.InnovationScore = data
+		case "FeasibilityScore":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("FeasibilityScore"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FeasibilityScore = data
+		case "ImpactScore":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ImpactScore"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImpactScore = data
+		case "Summary":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Summary"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Summary = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateTeamInput(ctx context.Context, obj any) (model.UpdateTeamInput, error) {
+	var it model.UpdateTeamInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"TeamName", "LeaderID", "TeamSize"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "TeamName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TeamName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TeamName = data
+		case "LeaderID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("LeaderID"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LeaderID = data
+		case "TeamSize":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TeamSize"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TeamSize = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateTeamMemberInput(ctx context.Context, obj any) (model.UpdateTeamMemberInput, error) {
+	var it model.UpdateTeamMemberInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"TeamID", "UserID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "TeamID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TeamID"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TeamID = data
+		case "UserID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UserID"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, obj any) (model.UpdateUserInput, error) {
 	var it model.UpdateUserInput
 	asMap := map[string]any{}
@@ -3712,8 +6777,8 @@ func (ec *executionContext) _Hackathon(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "End":
-			out.Values[i] = ec._Hackathon_End(ctx, field, obj)
+		case "EndDate":
+			out.Values[i] = ec._Hackathon_EndDate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -3783,6 +6848,37 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_UpdateUser(ctx, field)
 			})
+		case "RegisterToHackathon":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_RegisterToHackathon(ctx, field)
+			})
+		case "CreateHackathon":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateHackathon(ctx, field)
+			})
+		case "CreateCategories":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateCategories(ctx, field)
+			})
+		case "AddToTeam":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_AddToTeam(ctx, field)
+			})
+		case "CreateTeam":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateTeam(ctx, field)
+			})
+		case "SubmitCode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_SubmitCode(ctx, field)
+			})
+		case "AnalyzeCode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_AnalyzeCode(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3825,19 +6921,16 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "hello":
+		case "GetCurrentHackathons":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_hello(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
+				res = ec._Query_GetCurrentHackathons(ctx, field)
 				return res
 			}
 
@@ -3847,19 +6940,130 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getPost":
+		case "GetFutureHackathons":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getPost(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
+				res = ec._Query_GetFutureHackathons(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetHackathonByCategory":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetHackathonByCategory(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetHackathonByDuration":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetHackathonByDuration(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetCategories":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetCategories(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetUserHackathons":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetUserHackathons(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetAllTeamsForAHackathon":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetAllTeamsForAHackathon(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetMembersForATeam":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetMembersForATeam(ctx, field)
 				return res
 			}
 
@@ -3877,6 +7081,228 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var submissionImplementors = []string{"Submission"}
+
+func (ec *executionContext) _Submission(ctx context.Context, sel ast.SelectionSet, obj *model.Submission) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, submissionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Submission")
+		case "ID":
+			out.Values[i] = ec._Submission_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "TeamID":
+			out.Values[i] = ec._Submission_TeamID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "HackathonID":
+			out.Values[i] = ec._Submission_HackathonID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "GithubLink":
+			out.Values[i] = ec._Submission_GithubLink(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "DocumentURL":
+			out.Values[i] = ec._Submission_DocumentURL(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "PresentationURL":
+			out.Values[i] = ec._Submission_PresentationURL(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "SubmittedAt":
+			out.Values[i] = ec._Submission_SubmittedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "IsSubmitted":
+			out.Values[i] = ec._Submission_IsSubmitted(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "KeyFeatures":
+			out.Values[i] = ec._Submission_KeyFeatures(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "Feedback":
+			out.Values[i] = ec._Submission_Feedback(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "Adherence":
+			out.Values[i] = ec._Submission_Adherence(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "InnovationScore":
+			out.Values[i] = ec._Submission_InnovationScore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "FeasibilityScore":
+			out.Values[i] = ec._Submission_FeasibilityScore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ImpactScore":
+			out.Values[i] = ec._Submission_ImpactScore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "Summary":
+			out.Values[i] = ec._Submission_Summary(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "Hackathon":
+			out.Values[i] = ec._Submission_Hackathon(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "Team":
+			out.Values[i] = ec._Submission_Team(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var teamImplementors = []string{"Team"}
+
+func (ec *executionContext) _Team(ctx context.Context, sel ast.SelectionSet, obj *model.Team) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, teamImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Team")
+		case "ID":
+			out.Values[i] = ec._Team_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "TeamName":
+			out.Values[i] = ec._Team_TeamName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "LeaderID":
+			out.Values[i] = ec._Team_LeaderID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "TeamSize":
+			out.Values[i] = ec._Team_TeamSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var teamMemberImplementors = []string{"TeamMember"}
+
+func (ec *executionContext) _TeamMember(ctx context.Context, sel ast.SelectionSet, obj *model.TeamMember) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, teamMemberImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TeamMember")
+		case "ID":
+			out.Values[i] = ec._TeamMember_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "TeamID":
+			out.Values[i] = ec._TeamMember_TeamID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "UserID":
+			out.Values[i] = ec._TeamMember_UserID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4295,6 +7721,46 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNDateTime2string(ctx context.Context, v any) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDateTime2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v any) (float64, error) {
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloatContext(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) marshalNHackathon2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v *model.Hackathon) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Hackathon(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4350,6 +7816,16 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNTeam2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐTeam(ctx context.Context, sel ast.SelectionSet, v *model.Team) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Team(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4368,6 +7844,21 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 func (ec *executionContext) unmarshalNUpdateUserInput2HackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐUpdateUserInput(ctx context.Context, v any) (model.UpdateUserInput, error) {
 	res, err := ec.unmarshalInputUpdateUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v any) (graphql.Upload, error) {
+	res, err := graphql.UnmarshalUpload(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v graphql.Upload) graphql.Marshaler {
+	res := graphql.MarshalUpload(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -4649,6 +8140,150 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) marshalOCategory2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCategory(ctx context.Context, sel ast.SelectionSet, v []*model.Category) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCategory2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCategory(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOCategory2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCategory(ctx context.Context, sel ast.SelectionSet, v *model.Category) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Category(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCreateCategoryInput2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCreateCategoryInput(ctx context.Context, v any) (*model.CreateCategoryInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCreateCategoryInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCreateHackathonInput2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCreateHackathonInput(ctx context.Context, v any) (*model.CreateHackathonInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCreateHackathonInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCreateSubmissionInput2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCreateSubmissionInput(ctx context.Context, v any) (*model.CreateSubmissionInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCreateSubmissionInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCreateTeamMemberInputFrontend2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐCreateTeamMemberInputFrontend(ctx context.Context, v any) (*model.CreateTeamMemberInputFrontend, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCreateTeamMemberInputFrontend(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v any) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) marshalOHackathon2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v []*model.Hackathon) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOHackathon2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOHackathon2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐHackathon(ctx context.Context, sel ast.SelectionSet, v *model.Hackathon) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Hackathon(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -4711,6 +8346,102 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOSubmission2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐSubmission(ctx context.Context, sel ast.SelectionSet, v []*model.Submission) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOSubmission2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐSubmission(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOSubmission2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐSubmission(ctx context.Context, sel ast.SelectionSet, v *model.Submission) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Submission(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOTeamMember2ᚕᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐTeamMember(ctx context.Context, sel ast.SelectionSet, v []*model.TeamMember) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOTeamMember2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐTeamMember(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOTeamMember2ᚖHackathonᚑManagementᚑSystemᚋsrcᚋgraphᚋmodelᚐTeamMember(ctx context.Context, sel ast.SelectionSet, v *model.TeamMember) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TeamMember(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v any) (*time.Time, error) {

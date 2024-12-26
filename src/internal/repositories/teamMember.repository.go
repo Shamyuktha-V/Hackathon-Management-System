@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"Hackathon-Management-System/src/graph/model"
+	appConfig "Hackathon-Management-System/src/internal/config"
 	"Hackathon-Management-System/src/internal/models"
 	"context"
 	"fmt"
@@ -11,32 +12,37 @@ import (
 )
 
 type TeamMemberRepository struct {
-	DB *gorm.DB
+	AppConfig *appConfig.AppConfig
+	DB        *gorm.DB
+}
+
+func NewTeamMemberRepository(appConfig *appConfig.AppConfig) *TeamMemberRepository {
+	return &TeamMemberRepository{
+		AppConfig: appConfig,
+		DB:        appConfig.DB,
+	}
 }
 
 func InputToEntityTeamMember(input interface{}) models.TeamMember {
 	switch input := input.(type) {
 	case model.CreateTeamMemberInput:
 		var entity models.TeamMember
-		entity.TeamID = input.TeamID
-		entity.UserID = input.UserID
+		entity.ID = uuid.New()
+		entity.TeamID, _ = uuid.Parse(input.TeamID)
+		entity.UserID, _ = uuid.Parse(input.UserID)
 		return entity
 
 	case model.UpdateTeamMemberInput:
 		var entity models.TeamMember
 		if input.TeamID != nil {
-			entity.TeamID = *input.TeamID
+			entity.TeamID, _ = uuid.Parse(*input.TeamID)
 		}
 		if input.UserID != nil {
-			entity.UserID = *input.UserID
+			entity.UserID, _ = uuid.Parse(*input.UserID)
 		}
 		return entity
 	}
 	return models.TeamMember{}
-}
-
-func NewTeamMemberRepository(db *gorm.DB) *TeamMemberRepository {
-	return &TeamMemberRepository{DB: db}
 }
 
 func (repo *TeamMemberRepository) GetTeamMember(ctx context.Context, id uuid.UUID) (*model.TeamMember, error) {
@@ -71,7 +77,7 @@ func (repo *TeamMemberRepository) GetTeamMembersByUserID(ctx context.Context, us
 
 func (repo *TeamMemberRepository) CreateTeamMember(ctx context.Context, input model.CreateTeamMemberInput) (*model.TeamMember, error) {
 	teamMember := InputToEntityTeamMember(input)
-
+	fmt.Println("Team Member :: ", teamMember)
 	result := repo.DB.Table(models.TeamMember{}.TableName()).Create(&teamMember)
 	if result.Error != nil {
 		return nil, result.Error
@@ -82,11 +88,6 @@ func (repo *TeamMemberRepository) CreateTeamMember(ctx context.Context, input mo
 
 func (repo *TeamMemberRepository) UpdateTeamMember(ctx context.Context, id uuid.UUID, input model.UpdateTeamMemberInput) (*model.TeamMember, error) {
 	teamMember := InputToEntityTeamMember(input)
-	query := fmt.Sprintf("UPDATE %s SET version = version + 1 WHERE id =?", models.TeamMember{}.TableName())
-
-	if err := repo.DB.Exec(query, id).Error; err != nil {
-		return nil, err
-	}
 
 	result := repo.DB.Table(models.TeamMember{}.TableName()).Where("id =?", id).Updates(teamMember)
 	if result.Error != nil {

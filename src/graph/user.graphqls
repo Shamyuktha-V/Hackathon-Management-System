@@ -1,6 +1,7 @@
 enum  Role{
   ADMIN
   PARTICIPANT
+  JUDGE
 }
 
 type User{

@@ -87,11 +87,6 @@ func (repo *UserRepository) CreateUser(ctx context.Context, input model.CreateUs
 
 func (repo *UserRepository) UpdateUser(ctx context.Context, id uuid.UUID, input model.UpdateUserInput) (*model.User, error) {
 	user := InputToEntityUser(input)
-	query := fmt.Sprintf("UPDATE %s SET version = version + 1 WHERE id =?", models.User{}.TableName())
-
-	if err := repo.DB.Exec(query, id).Error; err != nil {
-		return nil, err
-	}
 
 	result := repo.DB.Table(models.User{}.TableName()).Where("id =?", id).Updates(user)
 	if result.Error != nil {

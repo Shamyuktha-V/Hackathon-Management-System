@@ -1,15 +1,16 @@
 scalar Time
+scalar DateTime
 
 type Hackathon {
   id: ID!
   JudgeID: ID!
   Name: String!
   ProblemStatement: String!
-  StartDate: Time!
-  End: Time!
+  StartDate: DateTime!
+  EndDate: DateTime!
   Duration: Int!
-  FromDate: Time!
-  ToDate: Time!
+  FromDate: DateTime!
+  ToDate: DateTime!
   CategoryID: ID!
 }
 

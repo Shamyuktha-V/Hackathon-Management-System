@@ -1,4 +1,10 @@
 type Query {
-    hello: String!
-    getPost(id: ID!): String!
+    GetCurrentHackathons:[Hackathon]
+    GetFutureHackathons:[Hackathon]
+    GetHackathonByCategory(id: ID!):[Hackathon]
+    GetHackathonByDuration(duration: Int!):[Hackathon]
+    GetCategories:[Category]
+    GetUserHackathons:[Submission]
+    GetAllTeamsForAHackathon(HackathonID:ID!):[Submission]
+    GetMembersForATeam(teamID: ID!): [TeamMember]
 }

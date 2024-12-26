@@ -10,14 +10,14 @@ import (
 )
 
 type TeamMemberService struct {
-	AppConfig          appConfig.AppConfig
+	AppConfig            *appConfig.AppConfig
 	TeamMemberRepository repositories.TeamMemberRepository
 }
 
-func NewTeamMemberService() *TeamMemberService {
+func NewTeamMemberService(appConfig *appConfig.AppConfig) *TeamMemberService {
 	return &TeamMemberService{
-		AppConfig:          *appConfig.NewConfig(),
-		TeamMemberRepository: *repositories.NewTeamMemberRepository(*appConfig.NewConfig()),
+		AppConfig:            appConfig,
+		TeamMemberRepository: *repositories.NewTeamMemberRepository(appConfig),
 	}
 }
 

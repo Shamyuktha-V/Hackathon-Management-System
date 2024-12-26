@@ -28,6 +28,7 @@ func InputToEntityHackathon(input interface{}) models.Hackathon {
 	switch input := input.(type) {
 	case model.CreateHackathonInput:
 		var entity models.Hackathon
+		entity.ID = uuid.New()
 		entity.JudgeID, _ = uuid.Parse(input.JudgeID)
 		entity.Name = input.Name
 		entity.ProblemStatement = input.ProblemStatement
@@ -84,9 +85,9 @@ func (repo *HackathonRepository) GetHackathon(ctx context.Context, id uuid.UUID)
 }
 
 // GetHackathonByCategory fetches a hackathon by category ID.
-func (repo *HackathonRepository) GetHackathonByCategory(ctx context.Context, categoryID uuid.UUID) (*model.Hackathon, error) {
-	var hackathon *model.Hackathon
-	result := repo.DB.Table(models.Hackathon{}.TableName()).Where("category_id =?", categoryID).First(&hackathon)
+func (repo *HackathonRepository) GetHackathonByCategory(ctx context.Context, categoryID uuid.UUID) ([]*model.Hackathon, error) {
+	var hackathon []*model.Hackathon
+	result := repo.DB.Table(models.Hackathon{}.TableName()).Where("category_id =?", categoryID).Find(&hackathon)
 	if result.Error != nil {
 		return hackathon, result.Error
 	}
@@ -144,11 +145,6 @@ func (repo *HackathonRepository) CreateHackathon(ctx context.Context, input mode
 // UpdateHackathon updates an existing hackathon.
 func (repo *HackathonRepository) UpdateHackathon(ctx context.Context, id uuid.UUID, input model.UpdateHackathonInput) (*model.Hackathon, error) {
 	hackathon := InputToEntityHackathon(input)
-	query := fmt.Sprintf("UPDATE %s SET version = version + 1 WHERE id =?", models.Hackathon{}.TableName())
-
-	if err := repo.DB.Exec(query, id).Error; err != nil {
-		return nil, err
-	}
 
 	result := repo.DB.Table(models.Hackathon{}.TableName()).Where("id =?", id).Updates(hackathon)
 	if result.Error != nil {

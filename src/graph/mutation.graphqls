@@ -1,3 +1,13 @@
 type Mutation {
     UpdateUser(input: UpdateUserInput!): User
+    RegisterToHackathon(input:CreateSubmissionInput):String
+    CreateHackathon(input:CreateHackathonInput):Hackathon
+    CreateCategories(input:CreateCategoryInput):Category
+    AddToTeam(inputFrontend:CreateTeamMemberInputFrontend):String
+    CreateTeam(teamName: String!):String
+    SubmitCode(id: ID!
+    GithubLink: String!
+    DocumentURL: Upload!
+    PresentationURL: Upload!):String
+    AnalyzeCode(githubLink: String! problemStatement: String!): String!
 }

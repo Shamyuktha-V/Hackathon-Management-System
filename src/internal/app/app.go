@@ -32,7 +32,7 @@ func StartApplication(appConf *configuration.AppConfig) {
 		panic(err)
 	}
 	appConf.DB = db
-	err = db.AutoMigrate(models.User{}, models.Hackathon{}, models.Category{})
+	err = db.AutoMigrate(models.User{}, models.Hackathon{}, models.Category{}, models.Team{}, models.Submission{}, models.TeamMember{})
 	if err != nil {
 		log.Fatalf("Auto migration failed: %v", err)
 	}

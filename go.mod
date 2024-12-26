@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/joho/godotenv v1.5.1
+	github.com/jpoz/groq v0.0.0-20240513145022-7a02894105a0
 	github.com/vektah/gqlparser/v2 v2.5.20
 )
 

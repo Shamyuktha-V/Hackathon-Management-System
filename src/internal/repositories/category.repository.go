@@ -27,6 +27,7 @@ func InputToEntityCategory(input interface{}) models.Category {
 	switch input := input.(type) {
 	case model.CreateCategoryInput:
 		var entity models.Category
+		entity.ID = uuid.New()
 		entity.Name = input.Name
 		return entity
 

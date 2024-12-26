@@ -10,14 +10,14 @@ import (
 )
 
 type SubmissionService struct {
-	AppConfig          appConfig.AppConfig
+	AppConfig            *appConfig.AppConfig
 	SubmissionRepository repositories.SubmissionRepository
 }
 
-func NewSubmissionService() *SubmissionService {
+func NewSubmissionService(appConfig *appConfig.AppConfig) *SubmissionService {
 	return &SubmissionService{
-		AppConfig:          *appConfig.NewConfig(),
-		SubmissionRepository: *repositories.NewSubmissionRepository(*appConfig.NewConfig()),
+		AppConfig:            appConfig,
+		SubmissionRepository: *repositories.NewSubmissionRepository(appConfig),
 	}
 }
 
@@ -27,6 +27,9 @@ type ISubmissionService interface {
 	CreateSubmission(ctx context.Context, input model.CreateSubmissionInput) (*model.Submission, error)
 	UpdateSubmission(ctx context.Context, id uuid.UUID, input model.UpdateSubmissionInput) (*model.Submission, error)
 	DeleteSubmission(ctx context.Context, id uuid.UUID) (string, error)
+	GetHackathonsForAJudge(ctx context.Context, judgeID uuid.UUID) ([]*model.Submission, error)
+	GetHackathonsForATeam(ctx context.Context, teamID uuid.UUID) ([]*model.Submission, error)
+	GetTeamsForAHackathons(ctx context.Context, hackathonID uuid.UUID) ([]*model.Submission, error)
 }
 
 func (s SubmissionService) GetSubmission(ctx context.Context, id uuid.UUID) (*model.Submission, error) {
@@ -67,4 +70,28 @@ func (s SubmissionService) DeleteSubmission(ctx context.Context, id uuid.UUID) (
 		return "", err
 	}
 	return message, nil
+}
+
+func (s SubmissionService) GetHackathonsForAJudge(ctx context.Context, judgeID uuid.UUID) ([]*model.Submission, error) {
+	submissions, err := s.SubmissionRepository.GetHackathonsForAJudge(ctx, judgeID)
+	if err != nil {
+		return nil, err
+	}
+	return submissions, nil
+}
+
+func (s SubmissionService) GetHackathonsForATeam(ctx context.Context, teamID uuid.UUID) ([]*model.Submission, error) {
+	submissions, err := s.SubmissionRepository.GetHackathonsForATeam(ctx, teamID)
+	if err != nil {
+		return nil, err
+	}
+	return submissions, nil
+}
+
+func (s SubmissionService) GetTeamsForAHackathons(ctx context.Context, hackathonID uuid.UUID) ([]*model.Submission, error) {
+	submissions, err := s.SubmissionRepository.GetTeamsForAHackathons(ctx, hackathonID)
+	if err != nil {
+		return nil, err
+	}
+	return submissions, nil
 }
