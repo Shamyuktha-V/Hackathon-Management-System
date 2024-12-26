@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -215,16 +214,7 @@ func (r *mutationResolver) AnalyzeCode(ctx context.Context, githubLink string, p
 		return "", fmt.Errorf("Invalid github link")
 	}
 	results := analyze.AnalyzeCode(githubLink, problemStatement)
-	var strBuilder strings.Builder
-	for key, value := range results {
-		if value != nil {
-			strBuilder.WriteString(fmt.Sprintf("%s: %v\n", key, value))
-		} else {
-			strBuilder.WriteString(fmt.Sprintf("%s: NULL\n", key))
-		}
-	}
-	finalString := strBuilder.String()
-	return finalString, nil
+	return results, nil
 }
 
 // Mutation returns MutationResolver implementation.
