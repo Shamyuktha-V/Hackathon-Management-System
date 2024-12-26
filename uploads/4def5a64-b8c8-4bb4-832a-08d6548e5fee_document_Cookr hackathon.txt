@@ -1,0 +1,44 @@
+Cookr hackathon
+
+problem statement 2
+
+input:
+
+	riders count = n [name list] 
+
+	csv:
+		customers	kitchens[names]		customer_location(coorinates)	kitchen_location(coordinates)	order_time	ready_time	
+ 
+Process:
+
+kd tree for customers
+kd tree for kitchens
+
+for 1km distance --- calculate the distance using coordinates
+
+for on the way ---- check whether both lies on same side of the root and there is a path between them
+
+for 10 mins - subtract the ready time of the products
+
+for rider reaching time ---- for 1 km 10 mins ( intrepreted from question )
+
+
+Progress:
+
+rule 1 --- completed  ( same kitchen, same customer, 10 mins )
+
+rule 2 --- completed  ( different kitchen - 1km, same customer, 10 mins )
+
+rule 3 --- completed  ( same kitchen, different customer - 1km, 10 mins )
+
+rule 4 --- rule 2
+
+rule 5 --- rule 2
+
+rule 6 --- completed  ( different kitchen - 2nd kitchen on the way to customer, same customer, ready at the time the rider reaches second customer or 10 mins)
+
+rule 7 --- completed  ( different kitchen - 2nd kitchen on the way to customer, 2nd customer drop on the way to the 1st customer, ready at the time the rider reaches second customer or 10 mins)
+
+
+rule 8 --- completed  ( same kitchen, 2nd customer drop on the way to the 1st customer, 10 mins)
+

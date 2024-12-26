@@ -11,7 +11,7 @@ type Hackathon struct {
 	ID               uuid.UUID `gorm:"primaryKey;column:id"`
 	JudgeID          uuid.UUID `gorm:"size:36;not null;column:judge_id"`
 	Name             string    `gorm:"size:255;not null;column:name"`
-	ProblemStatement string    `gorm:"size:1000;column:problem_statement"`
+	ProblemStatement string    `gorm:"type:text;column:problem_statement"`
 	StartDate        time.Time `gorm:"not null;column:start_date"`
 	EndDate          time.Time `gorm:"not null;column:end_date"`
 	Duration         int       `gorm:"not null;column:duration"`
